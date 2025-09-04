@@ -1,0 +1,287 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/tabs/tab1"></ion-back-button>
+    </ion-buttons>
+    <ion-title>{{ attraction?.name || 'Attraction Details' }}</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="openInMaps()" *ngIf="attraction">
+        <ion-icon name="navigate"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content *ngIf="attraction">
+  <!-- Image Gallery -->
+  <div class="image-gallery">
+    <img [src]="attraction.images[0]" [alt]="attraction.name" class="main-image" />
+  </div>
+
+  <!-- Attraction Info -->
+  <div class="attraction-info ion-padding">
+    <div class="header-info">
+      <h1>{{ attraction.name }}</h1>
+      <ion-chip [color]="getCategoryColor(attraction.category)">
+        {{ attraction.category | titlecase }}
+      </ion-chip>
+    </div>
+
+    <div class="rating-section">
+      <div class="rating">
+        <ion-icon name="star" color="warning"></ion-icon>
+        <span class="rating-text">{{ attraction.rating }} / 5</span>
+        <span class="review-count">({{ attraction.reviewCount }} reviews)</span>
+      </div>
+    </div>
+
+    <p class="description">{{ attraction.description }}</p>
+
+    <!-- Quick Actions -->
+    <div class="quick-actions">
+      <ion-button fill="outline" (click)="openInMaps()">
+        <ion-icon name="navigate-outline" slot="start"></ion-icon>
+        Directions
+      </ion-button>
+      
+      <ion-button fill="outline" (click)="callAttraction()" *ngIf="attraction.phone">
+        <ion-icon name="call-outline" slot="start"></ion-icon>
+        Call
+      </ion-button>
+      
+      <ion-button fill="outline" (click)="visitWebsite()" *ngIf="attraction.website">
+        <ion-icon name="globe-outline" slot="start"></ion-icon>
+        Website
+      </ion-button>
+    </div>
+
+    <!-- Details Section -->
+    <div class="details-section">
+      <h3>Details</h3>
+      
+      <ion-item lines="none">
+        <ion-icon name="time-outline" slot="start"></ion-icon>
+        <ion-label>
+          <h4>Hours</h4>
+          <p>{{ attraction.hours }}</p>
+        </ion-label>
+      </ion-item>
+
+      <ion-item lines="none" *ngIf="attraction.ticketPrice > 0">
+        <ion-icon name="card-outline" slot="start"></ion-icon>
+        <ion-label>
+          <h4>Admission</h4>
+          <p>${{ attraction.ticketPrice }}</p>
+        </ion-label>
+      </ion-item>
+
+      <ion-item lines="none">
+        <ion-icon name="location-outline" slot="start"></ion-icon>
+        <ion-label>
+          <h4>Address</h4>
+          <p>{{ attraction.location.address }}</p>
+        </ion-label>
+      </ion-item>
+
+      <ion-item lines="none" *ngIf="attraction.phone">
+        <ion-icon name="call-outline" slot="start"></ion-icon>
+        <ion-label>
+          <h4>Phone</h4>
+          <p>{{ attraction.phone }}</p>
+        </ion-label>
+      </ion-item>
+    </div>
+
+    <!-- Reviews Section -->
+    <div class="reviews-section">
+      <div class="reviews-header">
+        <h3>Reviews ({{ attraction.reviews.length }})</h3>
+        <ion-button 
+          fill="solid" 
+          size="default"
+          (click)="toggleReviewForm()"
+          class="write-review-btn">
+          <ion-icon name="create-outline" slot="start"></ion-icon>
+          {{ showReviewForm ? 'Cancel' : 'Write Review' }}
+        </ion-button>
+      </div>
+
+      <!-- Review Submission Form -->
+      <ion-card *ngIf="showReviewForm" class="review-form-card">
+        <ion-card-header>
+          <ion-card-title>Share Your Experience</ion-card-title>
+          <ion-card-subtitle>Help others discover this amazing place!</ion-card-subtitle>
+        </ion-card-header>
+
+        <ion-card-content>
+          <form>
+            <!-- Anonymous Toggle -->
+            <div class="form-field">
+              <ion-item lines="none">
+                <ion-checkbox 
+                  slot="start" 
+                  [(ngModel)]="reviewForm.isAnonymous"
+                  name="isAnonymous">
+                </ion-checkbox>
+                <ion-label>Submit anonymously</ion-label>
+              </ion-item>
+            </div>
+
+            <!-- Name Input -->
+            <div class="form-field" *ngIf="!reviewForm.isAnonymous">
+              <ion-item>
+                <ion-label position="stacked">Your Name *</ion-label>
+                <ion-input 
+                  [(ngModel)]="reviewForm.userName"
+                  name="userName"
+                  placeholder="Enter your name or nickname"
+                  maxlength="50">
+                </ion-input>
+              </ion-item>
+            </div>
+
+            <!-- Rating -->
+<div class="form-field">
+  <ion-item lines="none">
+    <ion-label position="stacked">Rating * ({{ reviewForm.rating }}/5)</ion-label>
+  </ion-item>
+  
+  <div class="rating-controls">
+    <!-- Plus/Minus Controls -->
+    <div class="rating-buttons">
+      <ion-button 
+        fill="outline" 
+        size="small"
+        (click)="decreaseRating()"
+        [disabled]="reviewForm.rating <= 1">
+        <ion-icon name="remove"></ion-icon>
+      </ion-button>
+      
+      <span class="rating-display">{{ reviewForm.rating }}</span>
+      
+      <ion-button 
+        fill="outline" 
+        size="small"
+        (click)="increaseRating()"
+        [disabled]="reviewForm.rating >= 5">
+        <ion-icon name="add"></ion-icon>
+      </ion-button>
+    </div>
+    
+    <!-- Visual Star Display -->
+    <div class="rating-stars-display">
+      <ion-icon 
+        *ngFor="let star of getStarArray(5); let i = index" 
+        [name]="i < reviewForm.rating ? 'star' : 'star-outline'"
+        [color]="i < reviewForm.rating ? 'warning' : 'medium'"
+        (click)="setRating(i + 1)"
+        class="rating-star">
+      </ion-icon>
+    </div>
+    
+    <!-- Rating Labels -->
+    <div class="rating-description">
+      <span [ngSwitch]="reviewForm.rating">
+        <span *ngSwitchCase="1" class="rating-poor">Poor</span>
+        <span *ngSwitchCase="2" class="rating-fair">Fair</span>
+        <span *ngSwitchCase="3" class="rating-good">Good</span>
+        <span *ngSwitchCase="4" class="rating-very-good">Very Good</span>
+        <span *ngSwitchCase="5" class="rating-excellent">Excellent</span>
+      </span>
+    </div>
+  </div>
+</div>
+
+            <!-- Comment -->
+            <div class="form-field">
+              <ion-item>
+                <ion-label position="stacked">Your Review *</ion-label>
+                <ion-textarea
+                  [(ngModel)]="reviewForm.comment"
+                  name="comment"
+                  placeholder="Tell others about your experience..."
+                  rows="4"
+                  maxlength="500"
+                  counter="true">
+                </ion-textarea>
+              </ion-item>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="form-actions">
+              <ion-button 
+                expand="block" 
+                (click)="submitReview()"
+                [disabled]="!reviewForm.comment.trim()">
+                <ion-icon name="send" slot="start"></ion-icon>
+                Submit Review
+              </ion-button>
+            </div>
+          </form>
+        </ion-card-content>
+      </ion-card>
+
+      <!-- Existing Reviews -->
+      <div class="reviews-list">
+        <ion-card *ngFor="let review of attraction.reviews" class="review-card">
+          <ion-card-content>
+            <div class="review-header">
+              <div class="reviewer-info">
+                <ion-avatar>
+                  <div class="avatar-placeholder">
+                    {{ review.isAnonymous ? '?' : (review.userName.charAt(0).toUpperCase()) }}
+                  </div>
+                </ion-avatar>
+                <div class="reviewer-details">
+                  <strong>{{ review.userName }}</strong>
+                  <div class="review-meta">
+                    <div class="review-rating">
+                      <ion-icon 
+                        *ngFor="let star of getStarArray(5)" 
+                        [name]="star <= review.rating ? 'star' : 'star-outline'"
+                        color="warning"
+                        size="small">
+                      </ion-icon>
+                    </div>
+                    <span class="review-date">{{ formatDate(review.date) }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <p class="review-comment">{{ review.comment }}</p>
+
+            <div class="review-actions">
+              <ion-button 
+                fill="clear" 
+                size="small" 
+                (click)="markHelpful(review)"
+                class="helpful-btn">
+                <ion-icon name="thumbs-up-outline" slot="start"></ion-icon>
+                Helpful ({{ review.helpful }})
+              </ion-button>
+            </div>
+          </ion-card-content>
+        </ion-card>
+
+        <div *ngIf="attraction.reviews.length === 0" class="no-reviews">
+          <ion-icon name="chatbubbles-outline" size="large" color="medium"></ion-icon>
+          <h4>No reviews yet</h4>
+          <p>Be the first to share your experience!</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</ion-content>
+
+<!-- Error state -->
+<ion-content *ngIf="!attraction">
+  <div class="error-state">
+    <ion-icon name="alert-circle-outline" size="large" color="medium"></ion-icon>
+    <h2>Attraction not found</h2>
+    <ion-button routerLink="/tabs/tab1" fill="outline">
+      <ion-icon name="home" slot="start"></ion-icon>
+      Back to Adventures
+    </ion-button>
+  </div>
+</ion-content>

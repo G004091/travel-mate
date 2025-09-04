@@ -1,0 +1,167 @@
+import { Injectable } from '@angular/core';
+import { AngularFirestore } from '@angular/fire/compat/firestore';
+import { Observable, BehaviorSubject, combineLatest } from 'rxjs';
+import { map, catchError, switchMap, debounceTime } from 'rxjs/operators';
+import { Attraction, Review, TripPlan } from '../models/attraction.model';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class FirebaseService {
+  private attractionsSubject = new BehaviorSubject([]);
+  public attractions$ = this.attractionsSubject.asObservable();
+  
+  private searchSubject = new BehaviorSubject('');
+  
+  constructor(private firestore: AngularFirestore) {
+    this.initializeData();
+  }
+
+  // Observable for real-time data - handles asynchronous operations
+  private initializeData() {
+    // Real-time attraction updates
+    this.firestore.collection('attractions').snapshotChanges().pipe(
+      map(actions => actions.map(action => {
+        const data = action.payload.doc.data();
+        const id = action.payload.doc.id;
+        return { id, ...data } as Attraction;
+      })),
+      catchError(error => {
+        console.error('Firebase connection error:', error);
+        return [];
+      })
+    ).subscribe(attractions => {
+      this.attractionsSubject.next(attractions);
+    });
+  }
+
+  // GET HTTP request - Fetch attractions with filters
+  getAttractions(filters?: any): Observable {
+    let query = this.firestore.collection('attractions', ref => {
+      let queryRef: any = ref.orderBy('popularity', 'desc');
+      
+      if (filters?.category && filters.category !== 'all') {
+        queryRef = queryRef.where('category', '==', filters.category);
+      }
+      
+      if (filters?.minRating) {
+        queryRef = queryRef.where('rating', '>=', filters.minRating);
+      }
+      
+      return queryRef.limit(50);
+    });
+
+    return query.snapshotChanges().pipe(
+      map(actions => actions.map(action => {
+        const data = action.payload.doc.data();
+        const id = action.payload.doc.id;
+        return { id, ...data } as Attraction;
+      }))
+    );
+  }
+
+  // GET HTTP request - Search attractions
+  searchAttractions(searchTerm: string): Observable {
+    this.searchSubject.next(searchTerm);
+    
+    return combineLatest([
+      this.attractions$,
+      this.searchSubject.pipe(debounceTime(300))
+    ]).pipe(
+      map(([attractions, term]) => {
+        if (!term.trim()) return attractions;
+        
+        return attractions.filter(attraction =>
+          attraction.name.toLowerCase().includes(term.toLowerCase()) ||
+          attraction.description.toLowerCase().includes(term.toLowerCase()) ||
+          attraction.location.city.toLowerCase().includes(term.toLowerCase()) ||
+          attraction.tags.some(tag => tag.toLowerCase().includes(term.toLowerCase()))
+        );
+      })
+    );
+  }
+
+  // POST HTTP request - Add new attraction
+  async addAttraction(attraction: Omit): Promise {
+    const attractionData = {
+      ...attraction,
+      lastUpdated: new Date(),
+      popularity: 0,
+      reviews: []
+    };
+    
+    const docRef = await this.firestore.collection('attractions').add(attractionData);
+    return docRef.id;
+  }
+
+  // PUT HTTP request - Update attraction
+  async updateAttraction(id: string, updates: Partial): Promise {
+    return this.firestore.doc(`attractions/${id}`).update({
+      ...updates,
+      lastUpdated: new Date()
+    });
+  }
+
+  // POST HTTP request - Add review
+  async addReview(attractionId: string, review: Omit): Promise {
+    const batch = this.firestore.firestore.batch();
+    
+    // Add review to subcollection
+    const reviewRef = this.firestore.collection(`attractions/${attractionId}/reviews`).doc().ref;
+    batch.set(reviewRef, { ...review, createdAt: new Date() });
+    
+    // Update attraction rating
+    const attraction = await this.firestore.doc(`attractions/${attractionId}`).get().toPromise();
+    if (attraction && attraction.exists) {
+      const data = attraction.data() as Attraction;
+      const newRating = ((data.rating * data.reviews.length) + review.rating) / (data.reviews.length + 1);
+      
+      batch.update(attraction.ref, { 
+        rating: Math.round(newRating * 10) / 10,
+        'reviews': [...(data.reviews || []), { ...review, id: reviewRef.id }]
+      });
+    }
+    
+    return batch.commit();
+  }
+
+  // GET HTTP request - Get attraction by ID
+  getAttraction(id: string): Observable {
+    return this.firestore.doc(`attractions/${id}`).snapshotChanges().pipe(
+      map(action => {
+        if (!action.payload.exists) return null;
+        const data = action.payload.data();
+        return { id: action.payload.id, ...data } as Attraction;
+      })
+    );
+  }
+
+  // Real-time communication - Get reviews
+  getReviews(attractionId: string): Observable {
+    return this.firestore.collection(`attractions/${attractionId}/reviews`)
+      .snapshotChanges().pipe(
+        map(actions => actions.map(action => {
+          const data = action.payload.doc.data();
+          const id = action.payload.doc.id;
+          return { id, ...data } as Review;
+        }))
+      );
+  }
+
+  // Trip planning features
+  async saveTripPlan(trip: Omit): Promise {
+    const docRef = await this.firestore.collection('trips').add(trip);
+    return docRef.id;
+  }
+
+  getUserTrips(userId: string): Observable {
+    return this.firestore.collection('trips', 
+      ref => ref.where('userId', '==', userId)).snapshotChanges().pipe(
+      map(actions => actions.map(action => {
+        const data = action.payload.doc.data();
+        const id = action.payload.doc.id;
+        return { id, ...data } as TripPlan;
+      }))
+    );
+  }
+}

@@ -1,0 +1,35 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>WanderWombat Map</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="centerOnUserLocation()" [disabled]="!isLocationEnabled">
+        <ion-icon name="locate"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <div #mapContainer id="mapContainer" class="map-container"></div>
+  
+  <!-- Gesture Instructions -->
+  <div class="gesture-instructions">
+    <ion-chip outline color="primary">
+      <ion-icon name="hand-left-outline"></ion-icon>
+      <ion-label>Tap • Long Press • Pinch • Swipe</ion-label>
+    </ion-chip>
+  </div>
+  
+  <!-- Location Status -->
+  <div class="location-status">
+    <ion-chip *ngIf="currentLocation" color="success">
+      <ion-icon name="location"></ion-icon>
+      <ion-label>GPS Active</ion-label>
+    </ion-chip>
+    
+    <ion-chip *ngIf="!isLocationEnabled" color="warning">
+      <ion-icon name="location-off"></ion-icon>
+      <ion-label>GPS Disabled</ion-label>
+    </ion-chip>
+  </div>
+</ion-content>

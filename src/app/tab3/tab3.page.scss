@@ -1,0 +1,261 @@
+.filters-section {
+  margin-bottom: 20px;
+  
+  .filter-row {
+    display: flex;
+    gap: 12px;
+    
+    ion-select {
+      flex: 1;
+      --background: var(--ion-color-light);
+      --border-radius: 8px;
+    }
+  }
+}
+
+.reviews-section {
+  margin-bottom: 32px;
+  
+  h2 {
+    color: var(--ion-color-primary);
+    margin-bottom: 4px;
+    font-weight: 700;
+  }
+  
+  .section-subtitle {
+    color: var(--ion-color-medium);
+    margin-bottom: 20px;
+    font-size: 0.9rem;
+  }
+}
+
+.review-card {
+  margin-bottom: 20px;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  position: relative;
+  
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  }
+  
+  .ranking-badge {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    background: var(--ion-color-primary);
+    color: white;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 0.9rem;
+    z-index: 2;
+    
+    &.rank-1 {
+      background: #ffd700; // Gold
+      color: #333;
+    }
+    
+    &.rank-2 {
+      background: #c0c0c0; // Silver
+      color: #333;
+    }
+    
+    &.rank-3 {
+      background: #cd7f32; // Bronze
+      color: white;
+    }
+  }
+}
+
+.card-header {
+  display: flex;
+  gap: 16px;
+  padding: 16px 16px 0;
+  
+  .attraction-image {
+    width: 80px;
+    height: 80px;
+    border-radius: 12px;
+    object-fit: cover;
+    flex-shrink: 0;
+  }
+  
+  .attraction-info {
+    flex: 1;
+    
+    h3 {
+      margin: 0 0 8px 0;
+      color: var(--ion-color-dark);
+      font-weight: 600;
+      font-size: 1.1rem;
+    }
+    
+    .rating-section {
+      margin-bottom: 8px;
+      
+      .stars {
+        display: flex;
+        align-items: center;
+        gap: 2px;
+        margin-bottom: 4px;
+        
+        ion-icon {
+          font-size: 16px;
+        }
+        
+        .rating-text {
+          margin-left: 6px;
+          font-weight: 600;
+          color: var(--ion-color-dark);
+        }
+      }
+      
+      .review-count {
+        font-size: 0.85rem;
+        color: var(--ion-color-medium);
+      }
+    }
+  }
+}
+
+ion-card-content {
+  padding: 0 16px 16px;
+  
+  .description {
+    color: var(--ion-color-medium);
+    font-size: 0.9rem;
+    line-height: 1.5;
+    margin-bottom: 16px;
+  }
+  
+  .top-review {
+    background: var(--ion-color-light);
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 12px;
+    
+    h4 {
+      margin: 0 0 8px 0;
+      color: var(--ion-color-primary);
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+    
+    .review-preview {
+      .review-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 6px;
+        
+        strong {
+          font-size: 0.9rem;
+          color: var(--ion-color-dark);
+        }
+        
+        .review-stars {
+          display: flex;
+          gap: 1px;
+        }
+      }
+      
+      .review-text {
+        margin: 0 0 8px 0;
+        font-size: 0.85rem;
+        line-height: 1.4;
+        color: var(--ion-color-dark);
+      }
+      
+      .review-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.8rem;
+        color: var(--ion-color-medium);
+        
+        .helpful {
+          display: flex;
+          align-items: center;
+          gap: 4px;
+          
+          ion-icon {
+            font-size: 14px;
+          }
+        }
+      }
+    }
+  }
+  
+  .view-reviews-btn {
+    --color: var(--ion-color-primary);
+    margin: 0;
+    font-size: 0.85rem;
+  }
+}
+
+.stats-section {
+  h3 {
+    color: var(--ion-color-primary);
+    margin-bottom: 16px;
+    font-weight: 600;
+  }
+  
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    
+    .stat-item {
+      background: var(--ion-color-light);
+      border-radius: 12px;
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      
+      ion-icon {
+        font-size: 24px;
+      }
+      
+      .stat-info {
+        .stat-number {
+          font-size: 1.2rem;
+          font-weight: 700;
+          color: var(--ion-color-dark);
+          margin-bottom: 2px;
+        }
+        
+        .stat-label {
+          font-size: 0.8rem;
+          color: var(--ion-color-medium);
+        }
+      }
+    }
+  }
+}
+
+// Responsive design
+@media (max-width: 768px) {
+  .card-header {
+    .attraction-image {
+      width: 60px;
+      height: 60px;
+    }
+    
+    .attraction-info h3 {
+      font-size: 1rem;
+    }
+  }
+  
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+}

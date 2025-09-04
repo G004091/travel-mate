@@ -1,0 +1,144 @@
+<ion-header [translucent]="true">
+  <ion-toolbar color="primary">
+    <ion-title>Top Reviews</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="ion-padding">
+  <!-- Filters Section -->
+  <div class="filters-section">
+    <div class="filter-row">
+      <ion-select 
+        [(ngModel)]="selectedCategory" 
+        (ionChange)="onCategoryChange()"
+        placeholder="All Categories"
+        interface="popover">
+        <ion-select-option *ngFor="let category of categories" [value]="category.value">
+          {{ category.label }}
+        </ion-select-option>
+      </ion-select>
+
+      <ion-select 
+        [(ngModel)]="sortBy" 
+        (ionChange)="onSortChange()"
+        interface="popover">
+        <ion-select-option value="rating">Highest Rated</ion-select-option>
+        <ion-select-option value="reviews">Most Reviews</ion-select-option>
+        <ion-select-option value="recent">Recent Reviews</ion-select-option>
+      </ion-select>
+    </div>
+  </div>
+
+  <!-- Top Rated Attractions -->
+  <div class="reviews-section">
+    <h2>Best Reviewed Landmarks</h2>
+    <p class="section-subtitle">Discover the most loved attractions based on visitor reviews</p>
+    
+    <div class="attractions-list">
+      <ion-card 
+        *ngFor="let attraction of getFilteredAttractions(); let i = index" 
+        class="review-card"
+        (click)="viewAttraction(attraction)">
+        
+        <!-- Ranking Badge -->
+        <div class="ranking-badge" [class]="'rank-' + (i + 1)">
+          #{{ i + 1 }}
+        </div>
+        
+        <div class="card-header">
+          <img [src]="attraction.images[0]" [alt]="attraction.name" class="attraction-image" />
+          
+          <div class="attraction-info">
+            <h3>{{ attraction.name }}</h3>
+            
+            <div class="rating-section">
+              <div class="stars">
+                <ion-icon 
+                  *ngFor="let star of getStarArray(5)" 
+                  [name]="star <= attraction.rating ? 'star' : 'star-outline'"
+                  [color]="star <= attraction.rating ? 'warning' : 'medium'">
+                </ion-icon>
+                <span class="rating-text">{{ attraction.rating }}</span>
+              </div>
+              <div class="review-count">{{ attraction.reviewCount }} reviews</div>
+            </div>
+            
+            <ion-chip [color]="getCategoryColor(attraction.category)" outline>
+              {{ attraction.category | titlecase }}
+            </ion-chip>
+          </div>
+        </div>
+
+        <ion-card-content>
+          <p class="description">{{ attraction.description }}</p>
+          
+          <!-- Top Review Preview -->
+          <div class="top-review" *ngIf="attraction.topReviews.length > 0">
+            <h4>Top Review:</h4>
+            <div class="review-preview">
+              <div class="review-header">
+                <strong>{{ attraction.topReviews[0].userName }}</strong>
+                <div class="review-stars">
+                  <ion-icon 
+                    *ngFor="let star of getStarArray(5)" 
+                    [name]="star <= attraction.topReviews[0].rating ? 'star' : 'star-outline'"
+                    color="warning"
+                    size="small">
+                  </ion-icon>
+                </div>
+              </div>
+              <p class="review-text">{{ attraction.topReviews[0].comment | slice:0:120 }}...</p>
+              <div class="review-meta">
+                <span class="review-date">{{ formatDate(attraction.topReviews[0].date) }}</span>
+                <span class="helpful">
+                  <ion-icon name="thumbs-up-outline"></ion-icon>
+                  {{ attraction.topReviews[0].helpful }} helpful
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- View All Reviews Button -->
+          <ion-button 
+            fill="clear" 
+            size="small" 
+            class="view-reviews-btn"
+            (click)="viewAttraction(attraction); $event.stopPropagation()">
+            <ion-icon name="chatbubbles-outline" slot="start"></ion-icon>
+            View All Reviews
+          </ion-button>
+        </ion-card-content>
+      </ion-card>
+    </div>
+  </div>
+
+  <!-- Review Statistics -->
+  <div class="stats-section">
+    <h3>Review Statistics</h3>
+    <div class="stats-grid">
+      <div class="stat-item">
+        <ion-icon name="star" color="warning"></ion-icon>
+        <div class="stat-info">
+          <div class="stat-number">4.6</div>
+          <div class="stat-label">Average Rating</div>
+        </div>
+      </div>
+      
+      <div class="stat-item">
+        <ion-icon name="chatbubbles" color="primary"></ion-icon>
+        <div class="stat-info">
+          <div class="stat-number">12K+</div>
+          <div class="stat-label">Total Reviews</div>
+        </div>
+      </div>
+      
+      <div class="stat-item">
+        <ion-icon name="people" color="success"></ion-icon>
+        <div class="stat-info">
+          <div class="stat-number">8.5K</div>
+          <div class="stat-label">Happy Visitors</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</ion-content>

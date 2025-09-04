@@ -1,0 +1,66 @@
+<ion-header [translucent]="true">
+  <ion-toolbar color="primary">
+    <ion-title>WanderWombat Tourism</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="ion-padding">
+  <!-- Category Filter -->
+  <ion-segment [(ngModel)]="selectedCategory" (ionChange)="onCategoryChange()">
+    <ion-segment-button *ngFor="let category of categories" [value]="category.value">
+      <ion-icon [name]="category.icon"></ion-icon>
+      <ion-label>{{ category.label }}</ion-label>
+    </ion-segment-button>
+  </ion-segment>
+
+  <!-- Attractions List -->
+  <div class="attractions-section">
+    <h2>Adventures ({{ getFilteredAttractions().length }})</h2>
+    
+    <div class="attractions-grid">
+      <ion-card 
+        *ngFor="let attraction of getFilteredAttractions()" 
+        class="attraction-card compact-card"
+        (click)="viewAttraction(attraction)">
+        
+        <div class="card-image">
+          <img [src]="attraction.images[0]" [alt]="attraction.name" />
+          <div class="overlay">
+            <ion-chip 
+              [color]="attraction.category === 'natural' ? 'success' : attraction.category === 'historical' ? 'primary' : 'secondary'"
+              class="category-chip">
+              {{ attraction.category | titlecase }}
+            </ion-chip>
+          </div>
+        </div>
+        
+        <ion-card-content class="compact-content">
+          <h3 class="attraction-title">{{ attraction.name }}</h3>
+          <p class="attraction-description">{{ attraction.description | slice:0:80 }}...</p>
+          
+          <div class="card-footer">
+            <div class="rating">
+              <ion-icon name="star" color="warning"></ion-icon>
+              <span>{{ attraction.rating }}</span>
+            </div>
+            <div class="distance" *ngIf="currentLocation">
+              <ion-icon name="location-outline" color="medium"></ion-icon>
+              <span>{{ getDistanceToAttraction(attraction) }}km</span>
+            </div>
+            <ion-button fill="clear" size="small" class="view-btn">
+              <ion-icon name="arrow-forward" slot="end"></ion-icon>
+              View
+            </ion-button>
+          </div>
+        </ion-card-content>
+      </ion-card>
+    </div>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="getFilteredAttractions().length === 0" class="empty-state">
+    <ion-icon name="search-outline" size="large" color="medium"></ion-icon>
+    <h3>No adventures found</h3>
+    <p>Try selecting a different category</p>
+  </div>
+</ion-content>
